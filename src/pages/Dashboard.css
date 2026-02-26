@@ -5,10 +5,41 @@
   gap: 20px;
 }
 
+.charts-grid {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+}
+
 .chart-container {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+.activity-container {
   margin-top: 40px;
   background: white;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+.activity-container ul {
+  list-style: none;
+  padding: 0;
+}
+
+.activity-container li {
+  padding: 10px 0;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+}
+
+.loading-skeleton {
+  padding: 40px;
+  font-size: 18px;
+  color: #64748b;
 }
