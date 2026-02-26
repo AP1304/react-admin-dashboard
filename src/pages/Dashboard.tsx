@@ -16,31 +16,51 @@ import {
 
 interface User {
   id: number;
-  name: string;
+}
+
+interface Cart {
+  id: number;
+  total: number;
 }
 
 const Dashboard = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [carts, setCarts] = useState<Cart[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://jsonplaceholder.typicode.com/users")
-      .then((res) => res.json())
-      .then((data) => {
-        setUsers(data);
+    const fetchData = async () => {
+      try {
+        const usersRes = await fetch("https://dummyjson.com/users");
+        const usersData = await usersRes.json();
+
+        const cartsRes = await fetch("https://dummyjson.com/carts");
+        const cartsData = await cartsRes.json();
+
+        setUsers(usersData.users);
+        setCarts(cartsData.carts);
         setLoading(false);
-      });
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  const userGrowthData = users.map((user, index) => ({
+  // User growth data
+  const userGrowthData = users.slice(0, 6).map((user, index) => ({
     name: `User ${user.id}`,
-    users: (index + 1) * 200,
+    users: (index + 1) * 50,
   }));
 
-  const revenueData = users.map((user, index) => ({
-    name: `User ${user.id}`,
-    revenue: (index + 1) * 500,
+  // Revenue data from carts
+  const revenueData = carts.slice(0, 6).map((cart) => ({
+    name: `Cart ${cart.id}`,
+    revenue: cart.total,
   }));
+
+  const totalRevenue = carts.reduce((sum, cart) => sum + cart.total, 0);
 
   if (loading) {
     return <div className="loading-skeleton">Loading Dashboard...</div>;
@@ -54,15 +74,19 @@ const Dashboard = () => {
         <StatCard
           title="Total Users"
           value={users.length.toString()}
-          change="+10% this month"
+          change="Live Data"
         />
         <StatCard
-          title="Revenue"
-          value={`$${users.length * 1200}`}
-          change="+8% this month"
+          title="Total Revenue"
+          value={`$${totalRevenue}`}
+          change="From Carts API"
         />
-        <StatCard title="Orders" value="320" change="+5% this month" />
-        <StatCard title="Active Sessions" value="89" change="+2% today" />
+        <StatCard
+          title="Total Orders"
+          value={carts.length.toString()}
+          change="Live Orders"
+        />
+        <StatCard title="Active Sessions" value="89" change="Static demo" />
       </div>
 
       <div className="charts-grid">
