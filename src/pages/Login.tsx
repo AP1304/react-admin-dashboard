@@ -1,94 +1,131 @@
-import { useForm } from "react-hook-form";
 import { useState } from "react";
-import "./Login.css";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../features/auth/AuthContext";
-
-type LoginFormInputs = {
-  email: string;
-  password: string;
-  remember: boolean;
-};
+import { Eye, EyeOff } from "lucide-react";
+import { useAuth, type Role } from "../features/auth/AuthContext";
+import "./Login.css";
 
 const Login = () => {
-  const navigate = useNavigate();
-  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<Role>("user");
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    general?: string;
+  }>({});
+  const [submitting, setSubmitting] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormInputs>();
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const onSubmit = (data: LoginFormInputs) => {
-    console.log("Login Data:", data);
+  const validate = () => {
+    const newErrors: typeof errors = {};
 
-    // 🔥 Call centralized login from AuthContext
-    login(data.email, data.remember);
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Enter a valid email address";
+    }
 
-    navigate("/dashboard");
+    if (!password.trim()) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
+
+  const handleLogin = async () => {
+    const isValid = validate();
+    if (!isValid) return;
+
+    setSubmitting(true);
+    setErrors({});
+
+    const success = await login(email, password, role);
+
+    if (success) {
+      navigate("/dashboard");
+    } else {
+      setErrors({ general: "Invalid credentials. Try demo accounts." });
+    }
+
+    setSubmitting(false);
+  };
+
+  const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   return (
     <div className="login-container">
-      <form className="login-card" onSubmit={handleSubmit(onSubmit)}>
-        <h2>Welcome Back 👋</h2>
+      <div className="login-card">
+        <h2>SaaS Admin Dashboard</h2>
 
-        {/* Email */}
+        {errors.general && (
+          <div className="general-error">{errors.general}</div>
+        )}
+
         <div className="form-group">
-          <label>Email</label>
           <input
             type="email"
-            placeholder="Enter your email"
-            {...register("email", {
-              required: "Email is required",
-              pattern: {
-                value: /^\S+@\S+$/i,
-                message: "Invalid email format",
-              },
-            })}
+            placeholder="Email"
+            value={email}
+            disabled={submitting}
+            onChange={(e) => setEmail(e.target.value)}
           />
           {errors.email && (
-            <span className="error">{errors.email.message}</span>
+            <span className="error-text">{errors.email}</span>
           )}
         </div>
 
-        {/* Password */}
-        <div className="form-group">
-          <label>Password</label>
-          <div className="password-wrapper">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Enter your password"
-              {...register("password", {
-                required: "Password is required",
-                minLength: {
-                  value: 6,
-                  message: "Minimum 6 characters required",
-                },
-              })}
-            />
-            <span
-              className="toggle-password"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? "Hide" : "Show"}
-            </span>
-          </div>
+        <div className="form-group password-wrapper">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            value={password}
+            disabled={submitting}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <span
+            className="eye-icon"
+            onClick={() => setShowPassword((prev) => !prev)}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </span>
+
           {errors.password && (
-            <span className="error">{errors.password.message}</span>
+            <span className="error-text">{errors.password}</span>
           )}
         </div>
 
-        {/* Remember Me */}
-        <div className="remember-me">
-          <input type="checkbox" {...register("remember")} />
-          <label>Remember Me</label>
-        </div>
+        <select
+          value={role}
+          disabled={submitting}
+          onChange={(e) => setRole(e.target.value as Role)}
+        >
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
 
-        <button type="submit">Login</button>
-      </form>
+        <button
+          onClick={handleLogin}
+          disabled={!isFormValid || submitting}
+        >
+          {submitting ? "Authenticating..." : "Login"}
+        </button>
+
+        {/* Demo credentials hint */}
+        <div className="demo-info">
+          Demo:
+          <br />
+          Admin → admin@test.com / admin123
+          <br />
+          User → user@test.com / user123
+        </div>
+      </div>
     </div>
   );
 };

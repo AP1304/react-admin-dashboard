@@ -1,7 +1,4 @@
-import { useEffect, useState } from "react";
-import StatCard from "../components/StatCard";
-import "./Dashboard.css";
-
+import { useEffect, useState, useMemo } from "react";
 import {
   LineChart,
   Line,
@@ -9,95 +6,90 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  CartesianGrid,
   BarChart,
   Bar,
+  CartesianGrid,
 } from "recharts";
-
-interface User {
-  id: number;
-}
-
-interface Cart {
-  id: number;
-  total: number;
-}
+import Card from "../components/ui/Card";
+import "./Dashboard.css";
 
 const Dashboard = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [carts, setCarts] = useState<Cart[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState(0);
+  const [orders, setOrders] = useState(0);
+  const [revenue, setRevenue] = useState(0);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const usersRes = await fetch("https://dummyjson.com/users");
-        const usersData = await usersRes.json();
+    fetch("https://jsonplaceholder.typicode.com/users")
+      .then((res) => res.json())
+      .then((data) => {
+        setUsers(data.length);
+        setOrders(data.length);
+      });
 
-        const cartsRes = await fetch("https://dummyjson.com/carts");
-        const cartsData = await cartsRes.json();
-
-        setUsers(usersData.users);
-        setCarts(cartsData.carts);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      }
-    };
-
-    fetchData();
+    fetch("https://jsonplaceholder.typicode.com/carts")
+      .then((res) => res.json())
+      .then((data) => {
+        const total = data.reduce(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (sum: number, cart: any) => sum + cart.total,
+          0
+        );
+        setRevenue(total);
+      });
   }, []);
 
-  // User growth data
-  const userGrowthData = users.slice(0, 6).map((user, index) => ({
-    name: `User ${user.id}`,
-    users: (index + 1) * 50,
-  }));
+  const stats = useMemo(
+    () => [
+      { title: "Total Users", value: users, label: "Live Data" },
+      { title: "Total Revenue", value: `$${revenue}`, label: "From API" },
+      { title: "Total Orders", value: orders, label: "Live Orders" },
+      { title: "Active Sessions", value: 128, label: "Realtime" },
+    ],
+    [users, revenue, orders]
+  );
 
-  // Revenue data from carts
-  const revenueData = carts.slice(0, 6).map((cart) => ({
-    name: `Cart ${cart.id}`,
-    revenue: cart.total,
-  }));
+  const userGrowthData = [
+    { name: "Jan", users: 50 },
+    { name: "Feb", users: 100 },
+    { name: "Mar", users: 150 },
+    { name: "Apr", users: 200 },
+    { name: "May", users: 250 },
+    { name: "Jun", users: 300 },
+  ];
 
-  const totalRevenue = carts.reduce((sum, cart) => sum + cart.total, 0);
-
-  if (loading) {
-    return <div className="loading-skeleton">Loading Dashboard...</div>;
-  }
+  const revenueData = [
+    { name: "Cart 1", revenue: 100000 },
+    { name: "Cart 2", revenue: 5000 },
+    { name: "Cart 3", revenue: 15000 },
+    { name: "Cart 4", revenue: 1000 },
+    { name: "Cart 5", revenue: 8000 },
+    { name: "Cart 6", revenue: 35000 },
+  ];
 
   return (
-    <div>
+    <div className="dashboard-container">
       <h1>Dashboard Overview</h1>
 
-      <div className="card-grid">
-        <StatCard
-          title="Total Users"
-          value={users.length.toString()}
-          change="Live Data"
-        />
-        <StatCard
-          title="Total Revenue"
-          value={`$${totalRevenue}`}
-          change="From Carts API"
-        />
-        <StatCard
-          title="Total Orders"
-          value={carts.length.toString()}
-          change="Live Orders"
-        />
-        <StatCard title="Active Sessions" value="89" change="Static demo" />
+      {/* Stat Cards */}
+      <div className="stats-grid">
+        {stats.map((stat) => (
+          <Card key={stat.title}>
+            <h4>{stat.title}</h4>
+            <h2>{stat.value}</h2>
+            <p className="green-text">{stat.label}</p>
+          </Card>
+        ))}
       </div>
 
+      {/* Charts */}
       <div className="charts-grid">
-        <div className="chart-container">
-          <h3>User Growth</h3>
+        <Card title="User Growth">
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={userGrowthData}>
-              <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
+              <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
               <Line
                 type="monotone"
                 dataKey="users"
@@ -106,23 +98,22 @@ const Dashboard = () => {
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
 
-        <div className="chart-container">
-          <h3>Revenue Analytics</h3>
+        <Card title="Revenue Analytics">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={revenueData}>
-              <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
+              <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
               <Bar dataKey="revenue" fill="#22c55e" />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       </div>
     </div>
   );
 };
 
-export default Dashboard;
+export default Dashboard; 

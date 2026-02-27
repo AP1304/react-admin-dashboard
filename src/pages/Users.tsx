@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { fetchUsers } from "../services/userService";
 import "./Users.css";
 
 interface User {
@@ -13,37 +14,40 @@ interface User {
 
 const Users = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 5;
 
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  // 🔹 Fetch Users
+  // 🔥 Fetch Users from Service Layer
   useEffect(() => {
-    fetch("https://jsonplaceholder.typicode.com/users")
-      .then((res) => res.json())
-      .then((data) => {
+    const loadUsers = async () => {
+      try {
+        const data = await fetchUsers();
         setUsers(data);
-        setFilteredUsers(data);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (err) {
+        setError("Failed to fetch users.");
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    loadUsers();
   }, []);
 
-  // 🔹 Search Filter
-  useEffect(() => {
-    const filtered = users.filter((user) =>
+  // 🔥 useMemo for filtering (Optimized)
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFilteredUsers(filtered);
-    setCurrentPage(1);
-  }, [searchTerm, users]);
+  }, [users, searchTerm]);
 
-  // 🔹 Pagination Logic
+  // 🔥 Pagination Logic
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = filteredUsers.slice(
@@ -53,13 +57,11 @@ const Users = () => {
 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
-  // 🔹 Delete User
   const handleDelete = (id: number) => {
     const updatedUsers = users.filter((user) => user.id !== id);
     setUsers(updatedUsers);
   };
 
-  // 🔹 Save Edited User
   const handleSave = () => {
     if (!editingUser) return;
 
@@ -75,20 +77,26 @@ const Users = () => {
     <div>
       <h1>User Management</h1>
 
-      {/* 🔎 Search Input */}
+      {/* Search */}
       <input
         type="text"
         placeholder="Search by name..."
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          setCurrentPage(1);
+        }}
         style={{ padding: "8px", marginTop: "10px" }}
       />
 
-      {loading ? (
-        <p style={{ marginTop: "20px" }}>Loading users...</p>
-      ) : (
+      {loading && <p style={{ marginTop: "20px" }}>Loading users...</p>}
+
+      {error && (
+        <p style={{ marginTop: "20px", color: "red" }}>{error}</p>
+      )}
+
+      {!loading && !error && (
         <>
-          {/* 📋 Table */}
           <table>
             <thead>
               <tr>
@@ -114,7 +122,10 @@ const Users = () => {
 
                       <button
                         onClick={() => handleDelete(user.id)}
-                        style={{ backgroundColor: "#ef4444", color: "white" }}
+                        style={{
+                          backgroundColor: "#ef4444",
+                          color: "white",
+                        }}
                       >
                         Delete
                       </button>
@@ -125,7 +136,7 @@ const Users = () => {
             </tbody>
           </table>
 
-          {/* 📄 Pagination */}
+          {/* Pagination */}
           <div style={{ marginTop: "15px" }}>
             {Array.from({ length: totalPages }, (_, index) => (
               <button
@@ -134,7 +145,9 @@ const Users = () => {
                 style={{
                   marginRight: "5px",
                   backgroundColor:
-                    currentPage === index + 1 ? "#4f46e5" : "#e2e8f0",
+                    currentPage === index + 1
+                      ? "#4f46e5"
+                      : "#e2e8f0",
                   color:
                     currentPage === index + 1 ? "white" : "black",
                 }}
@@ -146,7 +159,7 @@ const Users = () => {
         </>
       )}
 
-      {/* ✏ Edit Modal */}
+      {/* Edit Modal */}
       {editingUser && (
         <div className="modal">
           <div className="modal-content">

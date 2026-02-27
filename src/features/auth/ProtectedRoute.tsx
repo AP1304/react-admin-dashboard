@@ -1,15 +1,25 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "./AuthContext";
+import { useAuth, type Role } from "./AuthContext";
 import type { ReactNode } from "react";
 
-const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+interface Props {
+  children: ReactNode;
+  allowedRoles?: Role[];
+}
 
-  const storedUser =
-    localStorage.getItem("user") || sessionStorage.getItem("user");
+const ProtectedRoute = ({ children, allowedRoles }: Props) => {
+  const { user, loading } = useAuth();
 
-  if (!user && !storedUser) {
-    return <Navigate to="/login" replace />;
+  if (loading) {
+    return <p style={{ padding: "20px" }}>Checking authentication...</p>;
+  }
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;

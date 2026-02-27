@@ -1,52 +1,79 @@
-/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from "react";
-import type { ReactNode } from "react";
 
-interface AuthContextType {
-  user: string | null;
-  login: (email: string, remember: boolean) => void;
-  logout: () => void;
+export type Role = "admin" | "user";
+
+interface User {
+  email: string;
+  role: Role;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+interface AuthContextType {
+  user: User | null;
+  login: (email: string, password: string, role: Role) => Promise<boolean>;
+  logout: () => void;
+  loading: boolean;
+}
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<string | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-  // 🔹 Restore user on page refresh
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const storedUser =
-      localStorage.getItem("user") || sessionStorage.getItem("user");
-
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setUser(storedUser);
+      setUser(JSON.parse(storedUser));
     }
+    setLoading(false);
   }, []);
 
-  const login = (email: string, remember: boolean) => {
-    if (remember) {
-      localStorage.setItem("user", email);
-    } else {
-      sessionStorage.setItem("user", email);
+  const login = async (
+    email: string,
+    password: string,
+    role: Role
+  ): Promise<boolean> => {
+    setLoading(true);
+
+    // 🔥 Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    // 🔥 Demo credentials
+    const demoUsers = [
+      { email: "admin@test.com", password: "admin123", role: "admin" as Role },
+      { email: "user@test.com", password: "user123", role: "user" as Role },
+    ];
+
+    const foundUser = demoUsers.find(
+      (u) => u.email === email && u.password === password && u.role === role
+    );
+
+    if (foundUser) {
+      const userData = { email: foundUser.email, role: foundUser.role };
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData);
+      setLoading(false);
+      return true;
     }
 
-    setUser(email);
+    setLoading(false);
+    return false;
   };
 
   const logout = () => {
     localStorage.removeItem("user");
-    sessionStorage.removeItem("user");
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
