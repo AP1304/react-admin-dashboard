@@ -1,4 +1,3 @@
-/* Main Layout */
 .layout-wrapper {
   display: flex;
   height: 100vh;
@@ -8,7 +7,7 @@
 /* Sidebar */
 .sidebar {
   width: 240px;
-  background-color: #1e293b;
+  background-color: var(--sidebar-bg);
   color: white;
   padding: 20px 15px;
   display: flex;
@@ -21,22 +20,13 @@
   width: 80px;
 }
 
-/* Sidebar Header */
 .sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 30px;
 }
 
 .logo {
   font-size: 20px;
   font-weight: bold;
-}
-
-.menu-toggle {
-  cursor: pointer;
-  font-size: 20px;
 }
 
 /* Sidebar Links */
@@ -47,9 +37,6 @@
 }
 
 .sidebar a {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   text-decoration: none;
   color: #cbd5e1;
   padding: 10px;
@@ -58,63 +45,70 @@
 }
 
 .sidebar a:hover {
-  background-color: #334155;
+  background-color: var(--sidebar-hover);
   color: white;
 }
 
 .sidebar a.active {
-  background-color: #4f46e5;
+  background-color: var(--accent);
   color: white;
 }
 
-.sidebar nav span {
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.sidebar.collapsed nav span {
-  opacity: 0;
-  transform: translateX(-10px);
-  pointer-events: none;
-}
-
-.sidebar.collapsed a {
-  justify-content: center;
-}
-
-/* Main Content Area */
+/* Main Content */
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: #f1f5f9;
-  height: 100vh;
+  background-color: var(--bg-primary);
 }
+
 /* Topbar */
 .topbar {
   height: 60px;
-  background-color: #ffffff;
+  background-color: var(--bg-secondary);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.topbar button {
-  padding: 6px 12px;
-  border: none;
-  background-color: #4f46e5;
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.welcome-text {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.role-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
   color: white;
-  border-radius: 6px;
+}
+
+.role-badge.admin {
+  background: var(--accent);
+}
+
+.role-badge.user {
+  background: #16a34a;
+}
+
+.logout-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
   cursor: pointer;
-  transition: background 0.3s ease;
+  background: var(--danger);
+  color: white;
 }
 
-.topbar button:hover {
-  background-color: #4338ca;
-}
-
-/* Page Content */
 .content {
   flex: 1;
   padding: 20px;

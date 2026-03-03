@@ -1,11 +1,30 @@
 .card-container {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  background: var(--bg-secondary);
+  border-radius: 18px;
+  padding: 22px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
 }
 
 .card-title {
-  margin-bottom: 15px;
+  font-size: 16px;
   font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.card-header-right {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.card-content {
+  width: 100%;
 }

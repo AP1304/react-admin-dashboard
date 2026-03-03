@@ -1,102 +1,77 @@
+/* =========================
+   DASHBOARD BASE LAYOUT
+========================= */
+
 .dashboard-container {
-  padding: 20px;
+  padding: 40px;
+  background: var(--bg-primary);
+  min-height: 100vh;
 }
 
+/* Proper spacing below heading */
 .dashboard-container h1 {
-  margin-bottom: 30px;
+  margin-bottom: 25px;
+  color: var(--text-primary);
 }
 
-/* ===== STAT CARDS ===== */
+/* =========================
+   STATS GRID
+========================= */
+
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px;
   margin-bottom: 40px;
 }
 
-.stat-card {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
+/* =========================
+   CHART GRID (FORCE 2 PER ROW)
+========================= */
 
-.stat-card h4 {
-  color: #64748b;
-  margin-bottom: 10px;
-  font-weight: 500;
-}
-
-.stat-card h2 {
-  margin-bottom: 5px;
-  font-size: 26px;
-}
-
-.green-text {
-  color: #10b981;
-  font-size: 14px;
-}
-
-/* ===== CHARTS ===== */
 .charts-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 30px;
 }
 
-.chart-card {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.chart-placeholder {
-  height: 300px;
-  background: #f1f5f9;
-  border-radius: 10px;
-  margin-top: 15px;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 1200px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+/* Make charts stack on small screens */
+@media (max-width: 1000px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
   }
 
-  .charts-grid {
+  .stats-grid {
     grid-template-columns: 1fr;
   }
 }
 
-.dashboard-container {
-  padding: 20px;
-}
+/* =========================
+   PRIME DROPDOWN FIX
+========================= */
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+.analytics-filter {
   margin-bottom: 30px;
+  width: 240px;
 }
 
-.charts-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+.analytics-filter .p-dropdown {
+  width: 100%;
+  padding: 6px 10px;
 }
 
-.green-text {
-  color: #22c55e;
-  font-size: 14px;
+.analytics-filter .p-dropdown-label {
+  padding: 6px 4px !important;
 }
 
-.chart-placeholder {
-  height: 300px;
-  background: #f1f5f9;
-  border-radius: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #64748b;
+/* =========================
+   DARK MODE SAFE COLORS
+========================= */
+
+body.dark .dashboard-container {
+  background: var(--bg-primary);
+}
+
+body.dark .card-container {
+  background: var(--bg-secondary);
 }

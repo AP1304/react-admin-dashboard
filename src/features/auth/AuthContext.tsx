@@ -12,6 +12,8 @@ interface AuthContextType {
   login: (email: string, password: string, role: Role) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
+  isAdmin: boolean;
+  isUser: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,10 +38,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   ): Promise<boolean> => {
     setLoading(true);
 
-    // 🔥 Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 1200));
 
-    // 🔥 Demo credentials
     const demoUsers = [
       { email: "admin@test.com", password: "admin123", role: "admin" as Role },
       { email: "user@test.com", password: "user123", role: "user" as Role },
@@ -66,8 +66,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
   };
 
+  const isAdmin = user?.role === "admin";
+  const isUser = user?.role === "user";
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{ user, login, logout, loading, isAdmin, isUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

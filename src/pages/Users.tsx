@@ -1,6 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { fetchUsers } from "../services/userService";
-import "./Users.css";
+import { useEffect, useState } from "react";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Dialog } from "primereact/dialog";
+import { Button } from "primereact/button";
+import { InputText } from "primereact/inputtext";
+import { useAuth } from "../features/auth/AuthContext";
 
 interface User {
   id: number;
@@ -13,193 +17,100 @@ interface User {
 }
 
 const Users = () => {
+  const { isAdmin } = useAuth();
+
   const [users, setUsers] = useState<User[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [visible, setVisible] = useState(false);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 5;
-
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-
-  // 🔥 Fetch Users from Service Layer
   useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const data = await fetchUsers();
-        setUsers(data);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (err) {
-        setError("Failed to fetch users.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadUsers();
+    fetch("https://jsonplaceholder.typicode.com/users")
+      .then((res) => res.json())
+      .then((data) => setUsers(data));
   }, []);
 
-  // 🔥 useMemo for filtering (Optimized)
-  const filteredUsers = useMemo(() => {
-    return users.filter((user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [users, searchTerm]);
+  if (!isAdmin) {
+    return <h2 style={{ padding: "20px" }}>Access Restricted</h2>;
+  }
 
-  // 🔥 Pagination Logic
-  const indexOfLastUser = currentPage * usersPerPage;
-  const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = filteredUsers.slice(
-    indexOfFirstUser,
-    indexOfLastUser
+  const actionTemplate = (rowData: User) => (
+    <div style={{ display: "flex", gap: "8px" }}>
+      <Button
+        icon="pi pi-pencil"
+        rounded
+        text
+        severity="info"
+        onClick={() => {
+          setSelectedUser(rowData);
+          setVisible(true);
+        }}
+      />
+      <Button
+        icon="pi pi-trash"
+        rounded
+        text
+        severity="danger"
+        onClick={() =>
+          setUsers(users.filter((u) => u.id !== rowData.id))
+        }
+      />
+    </div>
   );
 
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  const header = (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      <h2>User Management</h2>
 
-  const handleDelete = (id: number) => {
-    const updatedUsers = users.filter((user) => user.id !== id);
-    setUsers(updatedUsers);
-  };
-
-  const handleSave = () => {
-    if (!editingUser) return;
-
-    const updatedUsers = users.map((user) =>
-      user.id === editingUser.id ? editingUser : user
-    );
-
-    setUsers(updatedUsers);
-    setEditingUser(null);
-  };
+      <InputText
+        placeholder="Search..."
+        value={globalFilter}
+        onChange={(e) => setGlobalFilter(e.target.value)}
+        style={{ width: "250px" }}
+      />
+    </div>
+  );
 
   return (
-    <div>
-      <h1>User Management</h1>
+    <div className="dashboard-container">
+      <DataTable
+        value={users}
+        paginator
+        rows={5}
+        header={header}
+        globalFilter={globalFilter}
+        stripedRows
+        responsiveLayout="scroll"
+      >
+        <Column field="name" header="Name" sortable />
+        <Column field="email" header="Email" sortable />
+        <Column field="phone" header="Phone" />
+        <Column field="company.name" header="Company" />
+        <Column header="Actions" body={actionTemplate} />
+      </DataTable>
 
-      {/* Search */}
-      <input
-        type="text"
-        placeholder="Search by name..."
-        value={searchTerm}
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-          setCurrentPage(1);
-        }}
-        style={{ padding: "8px", marginTop: "10px" }}
-      />
-
-      {loading && <p style={{ marginTop: "20px" }}>Loading users...</p>}
-
-      {error && (
-        <p style={{ marginTop: "20px", color: "red" }}>{error}</p>
-      )}
-
-      {!loading && !error && (
-        <>
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Company</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentUsers.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{user.phone}</td>
-                  <td>{user.company.name}</td>
-                  <td>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button onClick={() => setEditingUser(user)}>
-                        Edit
-                      </button>
-
-                      <button
-                        onClick={() => handleDelete(user.id)}
-                        style={{
-                          backgroundColor: "#ef4444",
-                          color: "white",
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Pagination */}
-          <div style={{ marginTop: "15px" }}>
-            {Array.from({ length: totalPages }, (_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentPage(index + 1)}
-                style={{
-                  marginRight: "5px",
-                  backgroundColor:
-                    currentPage === index + 1
-                      ? "#4f46e5"
-                      : "#e2e8f0",
-                  color:
-                    currentPage === index + 1 ? "white" : "black",
-                }}
-              >
-                {index + 1}
-              </button>
-            ))}
+      <Dialog
+        header="User Details"
+        visible={visible}
+        style={{ width: "400px" }}
+        onHide={() => setVisible(false)}
+        modal
+      >
+        {selectedUser && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <p><b>Name:</b> {selectedUser.name}</p>
+            <p><b>Email:</b> {selectedUser.email}</p>
+            <p><b>Phone:</b> {selectedUser.phone}</p>
+            <p><b>Company:</b> {selectedUser.company.name}</p>
           </div>
-        </>
-      )}
-
-      {/* Edit Modal */}
-      {editingUser && (
-        <div className="modal">
-          <div className="modal-content">
-            <h3>Edit User</h3>
-
-            <input
-              type="text"
-              value={editingUser.name}
-              onChange={(e) =>
-                setEditingUser({
-                  ...editingUser,
-                  name: e.target.value,
-                })
-              }
-            />
-
-            <input
-              type="text"
-              value={editingUser.email}
-              onChange={(e) =>
-                setEditingUser({
-                  ...editingUser,
-                  email: e.target.value,
-                })
-              }
-              style={{ marginTop: "10px" }}
-            />
-
-            <div style={{ marginTop: "15px" }}>
-              <button onClick={handleSave}>Save</button>
-              <button
-                onClick={() => setEditingUser(null)}
-                style={{ marginLeft: "10px" }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </Dialog>
     </div>
   );
 };

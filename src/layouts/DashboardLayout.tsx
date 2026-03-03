@@ -3,7 +3,7 @@ import { useAuth } from "../features/auth/AuthContext";
 import "./DashboardLayout.css";
 
 const DashboardLayout = () => {
-  const { logout, user } = useAuth();
+  const { logout, user, isAdmin } = useAuth();
 
   return (
     <div className="layout-wrapper">
@@ -14,18 +14,34 @@ const DashboardLayout = () => {
 
         <nav>
           <NavLink to="/dashboard">Dashboard</NavLink>
-          {user?.role === "admin" && (
-            <NavLink to="/users">Users</NavLink>
-          )}
+
+          {isAdmin && <NavLink to="/users">Users</NavLink>}
+
           <NavLink to="/analytics">Analytics</NavLink>
-          <NavLink to="/settings">Settings</NavLink>
+
+          {isAdmin && <NavLink to="/settings">Settings</NavLink>}
         </nav>
       </aside>
 
       <div className="main-content">
         <div className="topbar">
-          <span>Welcome, {user?.email}</span>
-          <button onClick={logout}>Logout</button>
+          <div className="topbar-left">
+            <span className="welcome-text">
+              Welcome, {user?.email}
+            </span>
+
+            <span
+              className={`role-badge ${
+                user?.role === "admin" ? "admin" : "user"
+              }`}
+            >
+              {user?.role?.toUpperCase()}
+            </span>
+          </div>
+
+          <button className="logout-btn" onClick={logout}>
+            Logout
+          </button>
         </div>
 
         <div className="content">

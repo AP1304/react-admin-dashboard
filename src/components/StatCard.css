@@ -1,8 +1,8 @@
 .stat-card {
-  background: white;
+  background: var(--bg-secondary);
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
   transition: transform 0.2s ease;
 }
 
@@ -11,13 +11,14 @@
 }
 
 .stat-card h4 {
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
 .stat-card h2 {
   margin: 10px 0;
   font-size: 24px;
+  color: var(--text-primary);
 }
 
 .stat-card p {
