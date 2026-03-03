@@ -107,3 +107,26 @@ body.dark .p-dialog {
 .p-datatable .p-datatable-header h2 {
   margin: 0;
 }
+
+/* ===================================
+   PRIME DROPDOWN DARK MODE FIX
+=================================== */
+
+body.dark .p-dropdown-panel {
+  background-color: #1f2937 !important;
+  color: #ffffff !important;
+}
+
+body.dark .p-dropdown-item {
+  color: #ffffff !important;
+}
+
+body.dark .p-dropdown-item:hover {
+  background-color: #374151 !important;
+  color: #ffffff !important;
+}
+
+body.dark .p-dropdown-item.p-highlight {
+  background-color: #4f46e5 !important;
+  color: #ffffff !important;
+}
