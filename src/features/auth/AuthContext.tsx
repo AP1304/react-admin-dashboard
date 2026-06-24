@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useState } from "react";
+/* eslint-disable react-hooks/set-state-in-effect */
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+
+import { loginUser } from "../../services/authService";
 
 export type Role = "admin" | "user";
 
@@ -9,25 +17,44 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string, role: Role) => Promise<boolean>;
+  login: (
+    email: string,
+    password: string,
+    role: Role
+  ) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
   isAdmin: boolean;
   isUser: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext =
+  createContext<AuthContextType | undefined>(
+    undefined
+  );
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+export const AuthProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const [user, setUser] =
+    useState<User | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+    const storedUser =
+      localStorage.getItem("user");
+
+    const token =
+      localStorage.getItem("token");
+
+    if (storedUser && token) {
       setUser(JSON.parse(storedUser));
     }
+
     setLoading(false);
   }, []);
 
@@ -36,42 +63,59 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     password: string,
     role: Role
   ): Promise<boolean> => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+      const data = await loginUser(
+        email,
+        password,
+        role
+      );
 
-    const demoUsers = [
-      { email: "admin@test.com", password: "admin123", role: "admin" as Role },
-      { email: "user@test.com", password: "user123", role: "user" as Role },
-    ];
+      localStorage.setItem(
+        "token",
+        data.token
+      );
 
-    const foundUser = demoUsers.find(
-      (u) => u.email === email && u.password === password && u.role === role
-    );
+      localStorage.setItem(
+        "user",
+        JSON.stringify(data.user)
+      );
 
-    if (foundUser) {
-      const userData = { email: foundUser.email, role: foundUser.role };
-      localStorage.setItem("user", JSON.stringify(userData));
-      setUser(userData);
-      setLoading(false);
+      setUser(data.user);
+
       return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-    return false;
   };
 
   const logout = () => {
+    localStorage.removeItem("token");
     localStorage.removeItem("user");
+
     setUser(null);
   };
 
-  const isAdmin = user?.role === "admin";
-  const isUser = user?.role === "user";
+  const isAdmin =
+    user?.role === "admin";
+
+  const isUser =
+    user?.role === "user";
 
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, loading, isAdmin, isUser }}
+      value={{
+        user,
+        login,
+        logout,
+        loading,
+        isAdmin,
+        isUser,
+      }}
     >
       {children}
     </AuthContext.Provider>
@@ -80,9 +124,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
-  const context = useContext(AuthContext);
+  const context =
+    useContext(AuthContext);
+
   if (!context) {
-    throw new Error("useAuth must be used inside AuthProvider");
+    throw new Error(
+      "useAuth must be used inside AuthProvider"
+    );
   }
+
   return context;
 };

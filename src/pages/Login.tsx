@@ -50,7 +50,10 @@ const Login = () => {
     if (success) {
       navigate("/dashboard");
     } else {
-      setErrors({ general: "Invalid credentials. Try demo accounts." });
+      setErrors({
+        general:
+          "Invalid email, password or role",
+      });
     }
 
     setSubmitting(false);
@@ -116,15 +119,11 @@ const Login = () => {
         >
           {submitting ? "Authenticating..." : "Login"}
         </button>
+        
+          <div className="demo-info">
+            Login using your registered account
+          </div>
 
-        {/* Demo credentials hint */}
-        <div className="demo-info">
-          Demo:
-          <br />
-          Admin → admin@test.com / admin123
-          <br />
-          User → user@test.com / user123
-        </div>
       </div>
     </div>
   );
