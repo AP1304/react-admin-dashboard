@@ -54,6 +54,31 @@
   color: white;
 }
 
+.sidebar-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-subnav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 12px;
+  border-left: 2px solid rgba(255, 255, 255, 0.15);
+  margin-left: 10px;
+}
+
+.sidebar-subnav a {
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+.sidebar-subnav a.active {
+  background-color: var(--accent);
+  color: white;
+}
+
 /* Main Content */
 .main-content {
   flex: 1;

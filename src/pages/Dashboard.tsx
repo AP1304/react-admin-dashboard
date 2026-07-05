@@ -1,119 +1,222 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
-  LineChart,
-  Line,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
   CartesianGrid,
+  ResponsiveContainer,
 } from "recharts";
 import Card from "../components/ui/Card";
+import {
+  getDashboardCards,
+  getRecentEmployees,
+  getDashboardCharts,
+  getActivities,
+  type DashboardCards,
+  type RecentEmployee,
+  type DashboardCharts,
+  type ActivityItem,
+} from "../services/dashboardService";
 import "./Dashboard.css";
 
+const COLORS = ["#4f46e5", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899", "#14b8a6"];
+
+const ACTION_LABELS: Record<string, string> = {
+  created: "Added",
+  updated: "Updated",
+  deleted: "Deleted",
+};
+
+const ACTION_COLORS: Record<string, string> = {
+  created: "#22c55e",
+  updated: "#f59e0b",
+  deleted: "#ef4444",
+};
+
 const Dashboard = () => {
-  const [users, setUsers] = useState(0);
-  const [orders, setOrders] = useState(0);
-  const [revenue, setRevenue] = useState(0);
+  const [cards, setCards] = useState<DashboardCards | null>(null);
+  const [recent, setRecent] = useState<RecentEmployee[]>([]);
+  const [charts, setCharts] = useState<DashboardCharts | null>(null);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://jsonplaceholder.typicode.com/users")
-      .then((res) => res.json())
-      .then((data) => {
-        setUsers(data.length);
-        setOrders(data.length);
-      });
+    const load = async () => {
+      try {
+        const [cardsData, recentData, chartsData, activitiesData] = await Promise.all([
+          getDashboardCards(),
+          getRecentEmployees(),
+          getDashboardCharts(),
+          getActivities(),
+        ]);
+        setCards(cardsData);
+        setRecent(recentData);
+        setCharts(chartsData);
+        setActivities(activitiesData);
+      } catch (error) {
+        console.error("Dashboard load error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    fetch("https://jsonplaceholder.typicode.com/carts")
-      .then((res) => res.json())
-      .then((data) => {
-        const total = data.reduce(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (sum: number, cart: any) => sum + cart.total,
-          0
-        );
-        setRevenue(total);
-      });
+    load();
   }, []);
 
-  const stats = useMemo(
-    () => [
-      { title: "Total Users", value: users, label: "Live Data" },
-      { title: "Total Revenue", value: `$${revenue}`, label: "From API" },
-      { title: "Total Orders", value: orders, label: "Live Orders" },
-      { title: "Active Sessions", value: 128, label: "Realtime" },
-    ],
-    [users, revenue, orders]
-  );
+  if (loading) {
+    return (
+      <div className="dashboard-container">
+        <h1>Dashboard Overview</h1>
+        <p>Loading dashboard data...</p>
+      </div>
+    );
+  }
 
-  const userGrowthData = [
-    { name: "Jan", users: 50 },
-    { name: "Feb", users: 100 },
-    { name: "Mar", users: 150 },
-    { name: "Apr", users: 200 },
-    { name: "May", users: 250 },
-    { name: "Jun", users: 300 },
-  ];
-
-  const revenueData = [
-    { name: "Cart 1", revenue: 100000 },
-    { name: "Cart 2", revenue: 5000 },
-    { name: "Cart 3", revenue: 15000 },
-    { name: "Cart 4", revenue: 1000 },
-    { name: "Cart 5", revenue: 8000 },
-    { name: "Cart 6", revenue: 35000 },
+  const stats = [
+    { title: "Total Employees", value: cards?.totalEmployees ?? 0, color: "#4f46e5" },
+    { title: "Active Employees", value: cards?.activeEmployees ?? 0, color: "#22c55e" },
+    { title: "Inactive Employees", value: cards?.inactiveEmployees ?? 0, color: "#ef4444" },
+    { title: "Departments", value: cards?.departments ?? 0, color: "#f59e0b" },
   ];
 
   return (
     <div className="dashboard-container">
       <h1>Dashboard Overview</h1>
 
-      {/* Stat Cards */}
       <div className="stats-grid">
         {stats.map((stat) => (
           <Card key={stat.title}>
             <h4>{stat.title}</h4>
-            <h2>{stat.value}</h2>
-            <p className="green-text">{stat.label}</p>
+            <h2 style={{ color: stat.color }}>{stat.value}</h2>
           </Card>
         ))}
       </div>
 
-      {/* Charts */}
-      <div className="charts-grid">
-        <Card title="User Growth">
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={userGrowthData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-              <Line
-                type="monotone"
-                dataKey="users"
-                stroke="#4f46e5"
-                strokeWidth={3}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+      {charts && (charts.byDepartment.length > 0 || charts.byDesignation.length > 0) && (
+        <div className="charts-grid" style={{ marginBottom: "30px" }}>
+          {charts.byDepartment.length > 0 && (
+            <Card title="Employees by Department">
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={charts.byDepartment}
+                    dataKey="count"
+                    nameKey="name"
+                    outerRadius={90}
+                    label={({ name, count }) => `${name} (${count})`}
+                  >
+                    {charts.byDepartment.map((_, index) => (
+                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+          )}
+
+          {charts.byDesignation.length > 0 && (
+            <Card title="Employees by Designation">
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={charts.byDesignation}>
+                  <XAxis dataKey="name" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <Bar dataKey="count" fill="#4f46e5" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          )}
+        </div>
+      )}
+
+      <div className="dashboard-bottom-grid">
+        <Card title="Recent Employees">
+          {recent.length === 0 ? (
+            <p style={{ padding: "16px", color: "#6b7280" }}>
+              No employees yet. Add your first employee to get started.
+            </p>
+          ) : (
+            <table className="recent-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Department</th>
+                  <th>Designation</th>
+                  <th>Joining Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recent.map((emp) => (
+                  <tr key={emp._id}>
+                    <td>{emp.firstName} {emp.lastName}</td>
+                    <td>{emp.department || "-"}</td>
+                    <td>{emp.designation || "-"}</td>
+                    <td>
+                      {new Date(emp.joiningDate).toLocaleDateString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td>
+                      <span
+                        className={`status-badge ${emp.status === "Active" ? "active" : "inactive"}`}
+                      >
+                        {emp.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </Card>
 
-        <Card title="Revenue Analytics">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={revenueData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-              <Bar dataKey="revenue" fill="#22c55e" />
-            </BarChart>
-          </ResponsiveContainer>
+        <Card title="Recent Activity">
+          {activities.length === 0 ? (
+            <p style={{ padding: "16px", color: "#6b7280" }}>
+              No activity recorded yet.
+            </p>
+          ) : (
+            <ul className="activity-list">
+              {activities.map((activity) => (
+                <li key={activity._id} className="activity-item">
+                  <span
+                    className="activity-dot"
+                    style={{ background: ACTION_COLORS[activity.action] || "#6b7280" }}
+                  />
+                  <div className="activity-content">
+                    <span className="activity-text">
+                      <strong>{activity.employeeName}</strong> was{" "}
+                      {ACTION_LABELS[activity.action] || activity.action}
+                    </span>
+                    <span className="activity-time">
+                      {new Date(activity.createdAt).toLocaleDateString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                      {activity.performedBy && ` by ${activity.performedBy.name}`}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
       </div>
     </div>
   );
 };
 
-export default Dashboard; 
+export default Dashboard;

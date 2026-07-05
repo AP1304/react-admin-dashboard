@@ -1,0 +1,153 @@
+.users-page {
+  padding: 24px;
+  background: #f8fafc;
+  min-height: 100%;
+}
+
+.users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.users-header h2 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.users-header .p-button {
+  padding: .75rem 1.4rem;
+  border-radius: 8px;
+}
+
+.users-header .p-button-icon {
+  margin-right: .5rem;
+}
+
+.users-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 18px;
+}
+
+.users-toolbar .p-icon-field {
+  position: relative;
+  width: 400px;
+  max-width: 100%;
+}
+
+.users-toolbar .p-icon-field-left > .p-input-icon {
+  left: 14px;
+  color: #6b7280;
+  z-index: 2;
+}
+
+.users-toolbar .p-icon-field .p-inputtext {
+  width: 100%;
+  height: 44px;
+  padding-left: 42px;
+  border-radius: 8px;
+}
+
+.p-datatable {
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+}
+
+.p-datatable table {
+  width: 100%;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  font-weight: 600;
+  background: white;
+  padding: 1rem;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  padding: .95rem 1rem;
+}
+
+.users-page .role-column,
+.users-page .status-column {
+  padding: 1.1rem 1.35rem !important;
+  text-align: center;
+}
+
+.users-page .role-column .p-tag,
+.users-page .status-column .p-tag {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+
+.users-page .actions-column-cell {
+  padding: 1.1rem 1.35rem !important;
+  text-align: center;
+}
+
+.actions-column {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: .65rem;
+}
+
+.actions-column .p-button {
+  width: 34px;
+  height: 34px;
+}
+
+.table-footer {
+  margin: 16px 0;
+  font-size: .9rem;
+  color: #6b7280;
+}
+
+.p-paginator {
+  border: none;
+  justify-content: center;
+  gap: .5rem;
+  padding-top: 1rem;
+}
+
+.p-paginator .p-dropdown {
+  height: 42px;
+  min-width: 90px;
+}
+
+.p-paginator .p-dropdown-label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.p-paginator .p-paginator-pages .p-paginator-page {
+  min-width: 36px;
+  height: 36px;
+}
+
+@media (max-width:768px) {
+
+  .users-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .users-header .p-button {
+    width: 100%;
+  }
+
+  .users-toolbar {
+    justify-content: stretch;
+  }
+
+  .users-toolbar .p-icon-field {
+    width: 100%;
+  }
+}

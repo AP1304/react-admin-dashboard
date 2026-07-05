@@ -1,56 +1,72 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
-  AreaChart,
-  Area,
   PieChart,
   Pie,
   Cell,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
 import { Dropdown } from "primereact/dropdown";
-import { useAuth } from "../features/auth/AuthContext";
-import StatCard from "../components/StatCard";
 import Card from "../components/ui/Card";
+import { getAnalytics, type AnalyticsData } from "../services/analyticsService";
 import "./Dashboard.css";
 
+const COLORS = ["#4f46e5", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899", "#14b8a6"];
+
+const STATUS_COLORS: Record<string, string> = {
+  Active: "#22c55e",
+  Inactive: "#ef4444",
+};
+
+const rangeOptions = [
+  { label: "Last 3 Months", value: 3 },
+  { label: "Last 6 Months", value: 6 },
+  { label: "Last 12 Months", value: 12 },
+];
+
 const Analytics = () => {
-  const { isAdmin } = useAuth();
-  const [range, setRange] = useState("monthly");
+  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [months, setMonths] = useState(12);
+  const [loading, setLoading] = useState(true);
 
-  const options = [
-    { label: "Last 3 Months", value: "weekly" },
-    { label: "Last 6 Months", value: "monthly" },
-    { label: "Full Year", value: "yearly" },
-  ];
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const result = await getAnalytics(months);
+        setData(result);
+      } catch (error) {
+        console.error("Analytics load error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const data = [
-    { name: "Jan", revenue: 4000, users: 240, orders: 120 },
-    { name: "Feb", revenue: 3000, users: 139, orders: 98 },
-    { name: "Mar", revenue: 5000, users: 980, orders: 200 },
-    { name: "Apr", revenue: 4780, users: 390, orders: 150 },
-    { name: "May", revenue: 5890, users: 480, orders: 180 },
-    { name: "Jun", revenue: 6390, users: 380, orders: 220 },
-  ];
+    load();
+  }, [months]);
 
-  const pieData = [
-    { name: "Desktop", value: 400 },
-    { name: "Mobile", value: 300 },
-    { name: "Tablet", value: 200 },
-  ];
+  if (loading && !data) {
+    return (
+      <div className="dashboard-container">
+        <h1>Analytics Overview</h1>
+        <p>Loading analytics data...</p>
+      </div>
+    );
+  }
 
-  const COLORS = ["#4f46e5", "#22c55e", "#f97316"];
-
-  const totalUsers = useMemo(
-    () => data.reduce((sum, item) => sum + item.users, 0),
-    []
+  const hasData = data && (
+    data.byDepartment.length > 0 ||
+    data.byDesignation.length > 0 ||
+    data.byStatus.length > 0 ||
+    data.monthlyJoining.length > 0
   );
 
   return (
@@ -59,69 +75,102 @@ const Analytics = () => {
 
       <div className="analytics-filter">
         <Dropdown
-          value={range}
-          options={options}
-          onChange={(e) => setRange(e.value)}
+          value={months}
+          options={rangeOptions}
+          onChange={(e) => setMonths(e.value)}
           placeholder="Select Range"
         />
       </div>
 
-      <div className="stats-grid">
-        <StatCard title="Total Users" value={`${totalUsers}`} change="+8%" />
-      </div>
-
-      <div className="charts-grid">
-        <Card title="Revenue Trend">
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <CartesianGrid strokeDasharray="3 3" />
-              <Line type="monotone" dataKey="revenue" stroke="#4f46e5" />
-            </LineChart>
-          </ResponsiveContainer>
+      {!hasData ? (
+        <Card>
+          <p style={{ padding: "20px", color: "#6b7280", textAlign: "center" }}>
+            No employee data available for analytics. Add employees to see charts.
+          </p>
         </Card>
+      ) : (
+        <div className="charts-grid">
+          {data!.byDepartment.length > 0 && (
+            <Card title="Employees by Department">
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={data!.byDepartment}
+                    dataKey="count"
+                    nameKey="name"
+                    outerRadius={100}
+                    label={({ name, count }) => `${name} (${count})`}
+                  >
+                    {data!.byDepartment.map((_, index) => (
+                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+          )}
 
-        <Card title="User Growth">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <CartesianGrid strokeDasharray="3 3" />
-              <Bar dataKey="users" fill="#22c55e" />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
+          {data!.byDesignation.length > 0 && (
+            <Card title="Employees by Designation">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={data!.byDesignation}>
+                  <XAxis dataKey="name" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <Bar dataKey="count" fill="#4f46e5" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          )}
 
-        <Card title="Orders Trend">
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={data}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <CartesianGrid strokeDasharray="3 3" />
-              <Area type="monotone" dataKey="orders" stroke="#f97316" fill="#f97316" fillOpacity={0.3} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </Card>
+          {data!.byStatus.length > 0 && (
+            <Card title="Employees by Status">
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={data!.byStatus}
+                    dataKey="count"
+                    nameKey="name"
+                    outerRadius={100}
+                    label={({ name, count }) => `${name} (${count})`}
+                  >
+                    {data!.byStatus.map((entry, index) => (
+                      <Cell
+                        key={index}
+                        fill={STATUS_COLORS[entry.name] || COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+          )}
 
-        {isAdmin && (
-          <Card title="Device Distribution">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie data={pieData} dataKey="value" outerRadius={100} label>
-                  {pieData.map((_, index) => (
-                    <Cell key={index} fill={COLORS[index]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </Card>
-        )}
-      </div>
+          {data!.monthlyJoining.length > 0 && (
+            <Card title="Employees Joined Per Month">
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={data!.monthlyJoining}>
+                  <XAxis dataKey="month" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#22c55e"
+                    strokeWidth={3}
+                    dot={{ r: 5 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   );
 };

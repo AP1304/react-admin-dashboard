@@ -130,3 +130,12 @@ body.dark .p-dropdown-item.p-highlight {
   background-color: #4f46e5 !important;
   color: #ffffff !important;
 }
+
+/* PrimeReact icon centering (global * reset overrides theme margin-top) */
+.p-icon-field > .p-input-icon {
+  top: 50%;
+  transform: translateY(-50%);
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+}

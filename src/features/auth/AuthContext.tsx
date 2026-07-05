@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import {
   createContext,
   useContext,
@@ -6,87 +5,87 @@ import {
   useState,
 } from "react";
 
-import { loginUser } from "../../services/authService";
+import {
+  loginUser,
+  logoutUser,
+  getToken,
+  getProfile,
+  getStoredPassword,
+  setStoredPassword,
+  type User,
+} from "../../services/authService";
 
 export type Role = "admin" | "user";
 
-interface User {
-  email: string;
-  role: Role;
-}
-
-interface AuthContextType {
+type AuthContextType = {
   user: User | null;
-  login: (
-    email: string,
-    password: string,
-    role: Role
-  ) => Promise<boolean>;
-  logout: () => void;
+  loginPassword: string | null;
   loading: boolean;
+  isAuthenticated: boolean;
   isAdmin: boolean;
-  isUser: boolean;
-}
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  updateLoginPassword: (password: string) => void;
+  refreshUser: () => Promise<void>;
+};
 
-const AuthContext =
-  createContext<AuthContextType | undefined>(
-    undefined
-  );
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
-  const [user, setUser] =
-    useState<User | null>(null);
-
-  const [loading, setLoading] =
-    useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [loginPassword, setLoginPassword] = useState<string | null>(() =>
+    getStoredPassword()
+  );
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser =
-      localStorage.getItem("user");
+    const init = async () => {
+      const token = getToken();
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-    const token =
-      localStorage.getItem("token");
+      try {
+        const profile = await getProfile();
+        const userData: User = {
+          id: (profile as Record<string, unknown>)._id as string || profile.id,
+          name: profile.name,
+          email: profile.email,
+          phone: profile.phone,
+          role: profile.role,
+          theme: profile.theme,
+        };
+        localStorage.setItem("user", JSON.stringify(userData));
+        setUser(userData);
+        setLoginPassword(getStoredPassword());
+      } catch {
+        logoutUser();
+        setUser(null);
+      }
 
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-    }
+      setLoading(false);
+    };
 
-    setLoading(false);
+    init();
   }, []);
 
-  const login = async (
-    email: string,
-    password: string,
-    role: Role
-  ): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setLoading(true);
-
-      const data = await loginUser(
-        email,
-        password,
-        role
-      );
-
-      localStorage.setItem(
-        "token",
-        data.token
-      );
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify(data.user)
-      );
-
+      const data = await loginUser({ email, password });
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setStoredPassword(email, password);
+      setLoginPassword(password);
       setUser(data.user);
-
       return true;
     } catch (error) {
-      console.error(error);
+      console.error("Login Error:", error);
       return false;
     } finally {
       setLoading(false);
@@ -94,27 +93,59 @@ export const AuthProvider = ({
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
+    logoutUser();
     setUser(null);
+    setLoginPassword(null);
   };
 
-  const isAdmin =
-    user?.role === "admin";
+  const updateLoginPassword = (password: string) => {
+    const email =
+      user?.email ??
+      (JSON.parse(localStorage.getItem("user") || "{}") as { email?: string })
+        .email;
 
-  const isUser =
-    user?.role === "user";
+    if (email) {
+      setStoredPassword(email, password);
+    } else {
+      localStorage.setItem("userPassword", password);
+    }
+    setLoginPassword(password);
+  };
+
+  const refreshUser = async () => {
+    try {
+      const profile = await getProfile();
+      const userData: User = {
+        id: (profile as Record<string, unknown>)._id as string || profile.id,
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        role: profile.role,
+        theme: profile.theme,
+      };
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData);
+    } catch {
+      logoutUser();
+      setUser(null);
+    }
+  };
+
+  const isAuthenticated = !!user && !!getToken();
+  const isAdmin = user?.role === "admin";
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        loginPassword,
+        loading,
         login,
         logout,
-        loading,
+        updateLoginPassword,
+        isAuthenticated,
         isAdmin,
-        isUser,
+        refreshUser,
       }}
     >
       {children}
@@ -122,15 +153,11 @@ export const AuthProvider = ({
   );
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
-  const context =
-    useContext(AuthContext);
+  const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error(
-      "useAuth must be used inside AuthProvider"
-    );
+    throw new Error("useAuth must be used within AuthProvider");
   }
 
   return context;

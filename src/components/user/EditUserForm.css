@@ -1,0 +1,14 @@
+.employee-form-grid .form-field-full {
+  grid-column: 1 / -1;
+}
+
+.employee-form-grid .field-hint {
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin-top: 0.3rem;
+  display: block;
+}
+
+.employee-form-grid .form-field .p-inputtext {
+  width: 100%;
+}

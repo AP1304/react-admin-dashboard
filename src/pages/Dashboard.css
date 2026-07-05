@@ -20,7 +20,7 @@
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 25px;
   margin-bottom: 40px;
 }
@@ -38,10 +38,6 @@
 /* Make charts stack on small screens */
 @media (max-width: 1000px) {
   .charts-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -74,4 +70,221 @@ body.dark .dashboard-container {
 
 body.dark .card-container {
   background: var(--bg-secondary);
+}
+
+/* =========================
+   RECENT EMPLOYEES TABLE
+========================= */
+
+.recent-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.recent-table th,
+.recent-table td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  font-size: 14px;
+}
+
+.recent-table th {
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.recent-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-badge.active {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.status-badge.inactive {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+@media (max-width: 1000px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================
+   SETTINGS FORM
+========================= */
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  max-width: 500px;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-field label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text-primary, #1f2937);
+}
+
+.settings-field .p-inputtext,
+.settings-field .p-dropdown,
+.settings-field .p-password,
+.settings-field .p-password-input {
+  width: 100%;
+}
+
+.settings-field .p-inputtext,
+.settings-field .p-dropdown,
+.settings-field .p-password-input {
+  height: 44px;
+  border-radius: 8px;
+}
+
+.settings-field .p-dropdown {
+  height: 44px;
+  border-radius: 8px;
+}
+
+.settings-field .p-dropdown-label {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding-left: 14px;
+}
+
+.settings-field .p-password {
+  width: 100%;
+}
+
+.settings-field .p-password-input {
+  width: 100%;
+  padding-right: 42px;
+}
+
+.settings-field .p-password .p-icon-field {
+  width: 100%;
+}
+
+.settings-actions {
+  margin-top: 8px;
+}
+
+.settings-actions .p-button {
+  height: 44px;
+  padding: 0 24px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.settings-actions .p-button .p-button-icon {
+  margin-right: 10px;
+  font-size: 1rem;
+}
+
+.field-error {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
+.field-hint {
+  color: #6b7280;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
+.dashboard-container .card-container + .card-container {
+  margin-top: 24px;
+}
+
+/* =========================
+   DASHBOARD BOTTOM GRID
+========================= */
+
+.dashboard-bottom-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 30px;
+}
+
+@media (max-width: 1000px) {
+  .dashboard-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================
+   ACTIVITY FEED
+========================= */
+
+.activity-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 5px;
+}
+
+.activity-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.activity-text {
+  font-size: 14px;
+  color: var(--text-primary, #1f2937);
+}
+
+.activity-time {
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
 }
