@@ -7,7 +7,7 @@ The project demonstrates scalable frontend architecture with authentication, ana
 
 ## Live Demo
 
-https://react-admin-dashboard-6jg525nsh-amitrp2001-6261s-projects.vercel.app/
+https://react-admin-dashboard-hazel-zeta.vercel.app/
 
 ---
 
