@@ -86,7 +86,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h2>SaaS Admin Dashboard</h2>
+        <h2>THIS IS VERSION 2</h2>
 
         {errors.general && (
           <div className="general-error">
