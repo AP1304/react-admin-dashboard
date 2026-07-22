@@ -108,7 +108,7 @@ const Dashboard = () => {
                     dataKey="count"
                     nameKey="name"
                     outerRadius={90}
-                    label={({ name, count }) => `${name} (${count})`}
+                    label={({ name, value }) => `${name} (${value})`}
                   >
                     {charts.byDepartment.map((_, index) => (
                       <Cell key={index} fill={COLORS[index % COLORS.length]} />

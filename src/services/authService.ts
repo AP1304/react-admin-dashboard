@@ -14,6 +14,17 @@ export interface User {
   theme: "light" | "dark";
 }
 
+type ProfileData = User & { _id?: string };
+
+const normalizeUser = (profile: ProfileData): User => ({
+  id: profile._id ?? profile.id,
+  name: profile.name,
+  email: profile.email,
+  phone: profile.phone,
+  role: profile.role,
+  theme: profile.theme,
+});
+
 export interface LoginResponse {
   token: string;
   user: User;
@@ -29,7 +40,7 @@ export const loginUser = async (
 
 export const getProfile = async (): Promise<User> => {
   const response = await api.get("/auth/profile");
-  return response.data.data;
+  return normalizeUser(response.data.data);
 };
 
 export const updateProfile = async (data: {
@@ -39,7 +50,7 @@ export const updateProfile = async (data: {
   theme?: string;
 }): Promise<User> => {
   const response = await api.put("/auth/profile", data);
-  return response.data.data;
+  return normalizeUser(response.data.data);
 };
 
 export const changePassword = async (data: {

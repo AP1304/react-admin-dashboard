@@ -99,7 +99,7 @@ const Analytics = () => {
                     dataKey="count"
                     nameKey="name"
                     outerRadius={100}
-                    label={({ name, count }) => `${name} (${count})`}
+                    label={({ name, value }) => `${name} (${value})`}
                   >
                     {data!.byDepartment.map((_, index) => (
                       <Cell key={index} fill={COLORS[index % COLORS.length]} />
@@ -134,7 +134,7 @@ const Analytics = () => {
                     dataKey="count"
                     nameKey="name"
                     outerRadius={100}
-                    label={({ name, count }) => `${name} (${count})`}
+                    label={({ name, value }) => `${name} (${value})`}
                   >
                     {data!.byStatus.map((entry, index) => (
                       <Cell

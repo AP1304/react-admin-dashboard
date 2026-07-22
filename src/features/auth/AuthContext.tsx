@@ -52,16 +52,8 @@ export const AuthProvider = ({
 
       try {
         const profile = await getProfile();
-        const userData: User = {
-          id: (profile as Record<string, unknown>)._id as string || profile.id,
-          name: profile.name,
-          email: profile.email,
-          phone: profile.phone,
-          role: profile.role,
-          theme: profile.theme,
-        };
-        localStorage.setItem("user", JSON.stringify(userData));
-        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(profile));
+        setUser(profile);
         setLoginPassword(getStoredPassword());
       } catch {
         logoutUser();
@@ -115,16 +107,8 @@ export const AuthProvider = ({
   const refreshUser = async () => {
     try {
       const profile = await getProfile();
-      const userData: User = {
-        id: (profile as Record<string, unknown>)._id as string || profile.id,
-        name: profile.name,
-        email: profile.email,
-        phone: profile.phone,
-        role: profile.role,
-        theme: profile.theme,
-      };
-      localStorage.setItem("user", JSON.stringify(userData));
-      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(profile));
+      setUser(profile);
     } catch {
       logoutUser();
       setUser(null);
